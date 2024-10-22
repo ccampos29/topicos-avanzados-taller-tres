@@ -40,3 +40,9 @@ bin/
 
 ### Mac OS ###
 .DS_Store
+.idea/gradle.xml
+.idea/vcs.xml
+gradlew
+.idea/misc.xml
+gradlew
+gradlew
