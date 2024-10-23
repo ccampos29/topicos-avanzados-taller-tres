@@ -1,0 +1,757 @@
+{
+	"info": {
+		"_postman_id": "d273aa99-883c-4655-8224-8868a4556c63",
+		"name": "TOPICS_AVANZADOS_TALLER_3",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "39214539",
+		"_collection_link": "https://cloudy-astronaut-7682.postman.co/workspace/EAFIT-WORKSPACE~67699fe8-d5df-40dd-bad5-68252c2d73ed/collection/5310545-d273aa99-883c-4655-8224-8868a4556c63?action=share&source=collection_link&creator=39214539"
+	},
+	"item": [
+		{
+			"name": "Apod",
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							"// Función para verificar si una fecha está en formato YYYY-MM-DD\r",
+							"function isValidDate(dateString) {\r",
+							"    const regex = /^\\d{4}-\\d{2}-\\d{2}$/;\r",
+							"    return regex.test(dateString);\r",
+							"}\r",
+							"\r",
+							"// Obtener la fecha de hoy en formato YYYY-MM-DD\r",
+							"const today = new Date().toISOString().split('T')[0];\r",
+							"\r",
+							"// Validar el parámetro 'date'\r",
+							"if (pm.request.url.query.has('date')) {\r",
+							"    const date = pm.request.url.query.get('date');\r",
+							"    if (!isValidDate(date)) {\r",
+							"        throw new Error(`La fecha ${date} no está en formato válido. Usa YYYY-MM-DD.`);\r",
+							"    }\r",
+							"} else if (!pm.request.url.query.has('count')) {\r",
+							"    // Si no se ha definido 'date' ni 'count', usar la fecha de hoy por defecto\r",
+							"    pm.request.url.query.add({\r",
+							"        key: 'date',\r",
+							"        value: today\r",
+							"    });\r",
+							"} \r",
+							"\r",
+							"// Validar los parámetros 'start_date' y 'end_date'\r",
+							"if (pm.request.url.query.has('start_date')) {\r",
+							"    const startDate = pm.request.url.query.get('start_date');\r",
+							"    if (!isValidDate(startDate)) {\r",
+							"        throw new Error(`La fecha ${startDate} no está en formato válido. Usa YYYY-MM-DD.`);\r",
+							"    }\r",
+							"}\r",
+							"\r",
+							"if (pm.request.url.query.has('end_date')) {\r",
+							"    const endDate = pm.request.url.query.get('end_date');\r",
+							"    if (!isValidDate(endDate)) {\r",
+							"        throw new Error(`La fecha ${endDate} no está en formato válido. Usa YYYY-MM-DD.`);\r",
+							"    }\r",
+							"}\r",
+							"\r",
+							"// Validar que 'count' no se use con 'date' o un rango de fechas\r",
+							"if (pm.request.url.query.has('count')) {\r",
+							"    if (pm.request.url.query.has('date')) {\r",
+							"        throw new Error(\"'count' no se puede usar junto con 'date'. Elimina uno de los parámetros.\");\r",
+							"    }\r",
+							"\r",
+							"    if (pm.request.url.query.has('start_date') || pm.request.url.query.has('end_date')) {\r",
+							"        throw new Error(\"'count' no se puede usar junto con 'start_date' o 'end_date'. Elimina uno de los parámetros.\");\r",
+							"    }\r",
+							"\r",
+							"    // Obtener el valor ingresado para 'count'\r",
+							"    const countValue = pm.request.url.query.get('count');\r",
+							"    pm.request.url.query.upsert({\r",
+							"        key: 'count',\r",
+							"        value: countValue\r",
+							"    });\r",
+							"}\r",
+							"\r",
+							"if (!pm.request.url.query.has('api_key')) {\r",
+							"    const currentEnvironment = pm.environment.name;\r",
+							"    console.log('CURRENT ENVIRONMENT: ', currentEnvironment)\r",
+							"\r",
+							"    // Comprobar si el entorno es ENV_TESTS\r",
+							"    if (currentEnvironment === 'ENV_TESTS') {\r",
+							"        const apiKey = pm.environment.get('API_KEY');\r",
+							"\r",
+							"        if (apiKey) {\r",
+							"            pm.request.url.query.add({\r",
+							"                key: 'api_key',\r",
+							"                value: apiKey\r",
+							"            });\r",
+							"        } else {\r",
+							"            throw new Error(\"API_KEY no está definida en el entorno ENV_TEST.\");\r",
+							"        }\r",
+							"    } else {\r",
+							"        // Usar una API key por defecto para otros entornos\r",
+							"        pm.request.url.query.add({\r",
+							"            key: 'api_key',\r",
+							"            value: 'uUf90MvbwKZz9HvDXQGWdpI5CCjEqethNtFauWcv'\r",
+							"        });\r",
+							"    }\r",
+							"}\r",
+							"\r",
+							"// Mostrar los parámetros actuales en la consola para depuración\r",
+							"console.log('Parámetros actuales:', pm.request.url.query.toObject());\r",
+							"\r",
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				},
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"// Suponiendo que ya tienes la respuesta guardada en una variable llamada `response`\r",
+							"pm.test(\"El código de estado es 200\", function () {\r",
+							"    pm.response.to.have.status(200);\r",
+							"});\r",
+							"\r",
+							"// Guardar los resultados en una variable\r",
+							"const results = pm.response.json();\r",
+							"\r",
+							"// Verificar que la cantidad de resultados corresponda al count ingresado\r",
+							"const count = pm.request.url.query.get('count');\r",
+							"if (count) {\r",
+							"    pm.test(`La cantidad de resultados es ${count}`, function () {\r",
+							"        pm.expect(results.length).to.equal(parseInt(count));\r",
+							"    });\r",
+							"}\r",
+							"\r",
+							"// Verificar si se proporcionó 'date' y que la fecha esté presente\r",
+							"const dateParam = pm.request.url.query.get('date');\r",
+							"if (dateParam) {\r",
+							"    pm.test(`La fecha ${dateParam} está presente en los resultados`, function () {\r",
+							"        const dateExists = results.some(item => item.date === dateParam);\r",
+							"        pm.expect(dateExists).to.be.true;\r",
+							"    });\r",
+							"\r",
+							"    pm.test(\"La fecha proporcionada está en formato válido (YYYY-MM-DD)\", function () {\r",
+							"        pm.expect(isValidDate(dateParam)).to.be.true;\r",
+							"    });\r",
+							"}\r",
+							"\r",
+							"// Verificar si se proporcionaron 'start_date' y 'end_date'\r",
+							"const startDateParam = pm.request.url.query.get('start_date');\r",
+							"const endDateParam = pm.request.url.query.get('end_date');\r",
+							"\r",
+							"if (startDateParam && endDateParam) {\r",
+							"    pm.test(`Todos los resultados están dentro del rango de fechas de ${startDateParam} a ${endDateParam}`, function () {\r",
+							"        const isInRange = results.every(item => {\r",
+							"            const itemDate = new Date(item.date);\r",
+							"            return itemDate >= new Date(startDateParam) && itemDate <= new Date(endDateParam);\r",
+							"        });\r",
+							"        pm.expect(isInRange).to.be.true;\r",
+							"    });\r",
+							"\r",
+							"    pm.test(\"El rango de fechas tiene un formato válido (YYYY-MM-DD)\", function () {\r",
+							"        pm.expect(isValidDate(startDateParam)).to.be.true;\r",
+							"        pm.expect(isValidDate(endDateParam)).to.be.true;\r",
+							"    });\r",
+							"}\r",
+							"\r",
+							"// Verificar que todas las fechas estén en formato válido\r",
+							"pm.test(\"Todas las fechas están en formato válido (YYYY-MM-DD)\", function () {\r",
+							"    const areValidDates = results.every(item => isValidDate(item.date));\r",
+							"    pm.expect(areValidDates).to.be.true;\r",
+							"});\r",
+							"\r",
+							"// Verificar que cada resultado tenga un title y un explanation no vacíos\r",
+							"pm.test(\"Cada resultado tiene un title y un explanation no vacíos\", function () {\r",
+							"    const hasValidFields = results.every(item => item.title && item.explanation);\r",
+							"    pm.expect(hasValidFields).to.be.true;\r",
+							"});\r",
+							"\r",
+							"// Comprobar que todos los elementos de media_type sean de tipo esperado\r",
+							"pm.test(\"Todos los media_type son de tipo esperado\", function () {\r",
+							"    const validMediaTypes = ['image', 'video', 'other'];\r",
+							"    const hasValidMediaType = results.every(item => validMediaTypes.includes(item.media_type));\r",
+							"    pm.expect(hasValidMediaType).to.be.true;\r",
+							"});\r",
+							"\r",
+							"// Función para verificar si una fecha está en formato YYYY-MM-DD\r",
+							"function isValidDate(dateString) {\r",
+							"    const regex = /^\\d{4}-\\d{2}-\\d{2}$/;\r",
+							"    return regex.test(dateString);\r",
+							"}\r",
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{BASE_URL}}/planetary/apod?count=10",
+					"host": [
+						"{{BASE_URL}}"
+					],
+					"path": [
+						"planetary",
+						"apod"
+					],
+					"query": [
+						{
+							"key": "count",
+							"value": "10"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Neo - Feed",
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							"// Función para validar formato de fecha YYYY-MM-DD\r",
+							"function isValidDateFormat(date) {\r",
+							"    const regex = /^\\d{4}-\\d{2}-\\d{2}$/; // Expresión regular para YYYY-MM-DD\r",
+							"    return regex.test(date);\r",
+							"}\r",
+							"\r",
+							"const startDate = pm.request.url.query.get('start_date');\r",
+							"const endDate = pm.request.url.query.get('end_date');\r",
+							"\r",
+							"if (!pm.request.url.query.has('start_date')) {\r",
+							"    throw new Error(\"El parámetro 'start_date' es obligatorio y no se ha proporcionado.\");\r",
+							"} else if(!isValidDateFormat(startDate)){\r",
+							"    throw new Error(\"Formato incorrecto para 'start_date' debe ser YYYY-MM-DD.\");    \r",
+							"}\r",
+							"\r",
+							"if (!pm.request.url.query.has('end_date')) {\r",
+							"    throw new Error(\"El parámetro 'end_date' es obligatorio y no se ha proporcionado.\");\r",
+							"} else if(!isValidDateFormat(endDate)){\r",
+							"    throw new Error(\"Formato incorrecto para 'end_date' debe ser YYYY-MM-DD.\");    \r",
+							"}\r",
+							"\r",
+							"// Validar si end_date excede los 7 días desde start_date\r",
+							"const startDateObj = new Date(startDate);\r",
+							"const endDateObj = new Date(endDate);\r",
+							"const maxEndDate = new Date(startDateObj);\r",
+							"maxEndDate.setDate(maxEndDate.getDate() + 7);\r",
+							"\r",
+							"if (endDateObj > maxEndDate) {\r",
+							"    throw new Error(\"El 'end_date' no puede ser mayor que 7 días después de 'start_date'.\");\r",
+							"}\r",
+							"\r",
+							"// Validar que end_date no sea menor que start_date\r",
+							"if (endDateObj < startDateObj) {\r",
+							"    throw new Error(\"El 'end_date' no puede ser menor que 'start_date'.\");\r",
+							"}\r",
+							"\r",
+							"// Validación del parámetro 'api_key'\r",
+							"if (!pm.request.url.query.has('api_key')) {\r",
+							"    const currentEnvironment = pm.environment.name;\r",
+							"    console.log('CURRENT ENVIRONMENT: ', currentEnvironment)\r",
+							"\r",
+							"    // Comprobar si el entorno es ENV_TESTS\r",
+							"    if (currentEnvironment === 'ENV_TESTS') {\r",
+							"        const apiKey = pm.environment.get('API_KEY');\r",
+							"\r",
+							"        if (apiKey) {\r",
+							"            pm.request.url.query.add({\r",
+							"                key: 'api_key',\r",
+							"                value: apiKey\r",
+							"            });\r",
+							"        } else {\r",
+							"            throw new Error(\"API_KEY no está definida en el entorno ENV_TEST.\");\r",
+							"        }\r",
+							"    } else {\r",
+							"        // Usar una API key por defecto para otros entornos\r",
+							"        pm.request.url.query.add({\r",
+							"            key: 'api_key',\r",
+							"            value: 'uUf90MvbwKZz9HvDXQGWdpI5CCjEqethNtFauWcv'\r",
+							"        });\r",
+							"    }\r",
+							"}\r",
+							"\r",
+							"// Mostrar los parámetros actuales en la consola para depuración\r",
+							"console.log('Parámetros actuales:', pm.request.url.query.toObject());\r",
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				},
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"// Validar que el código de estado sea 200\r",
+							"pm.test(\"El código de estado es 200\", function () {\r",
+							"    pm.response.to.have.status(200);\r",
+							"});\r",
+							"\r",
+							"// Validar que la respuesta esté en formato JSON\r",
+							"pm.test(\"La respuesta es JSON\", function () {\r",
+							"    pm.response.to.be.json;\r",
+							"});\r",
+							"\r",
+							"// Obtener la respuesta JSON del servicio\r",
+							"const response = pm.response.json();\r",
+							"\r",
+							"// Validar que la respuesta tenga el campo element_count y que sea un número\r",
+							"pm.test(\"Element count es un número\", function () {\r",
+							"    pm.expect(response.element_count).to.be.a('number');\r",
+							"});\r",
+							"\r",
+							"// Validar que near_earth_objects no esté vacío\r",
+							"pm.test(\"near_earth_objects tiene datos\", function () {\r",
+							"    pm.expect(Object.keys(response.near_earth_objects).length).to.be.greaterThan(0);\r",
+							"});\r",
+							"\r",
+							"// Array para almacenar los ids\r",
+							"let neoIds = [];\r",
+							"\r",
+							"// Iterar sobre los objetos de near_earth_objects y validar que tengan neo_reference_id\r",
+							"for (let date in response.near_earth_objects) {\r",
+							"    let objects = response.near_earth_objects[date];\r",
+							"    \r",
+							"    // Iterar sobre cada objeto en el array\r",
+							"    objects.forEach(neo => {\r",
+							"        pm.test(\"El objeto tiene un neo_reference_id\", function () {\r",
+							"            pm.expect(neo).to.have.property('neo_reference_id');\r",
+							"        });\r",
+							"        \r",
+							"        // Añadir el neo_reference_id al array\r",
+							"        neoIds.push(neo.neo_reference_id);\r",
+							"    });\r",
+							"}\r",
+							"\r",
+							"// Unir los ids en un solo string separado por comas\r",
+							"const neoIdsString = neoIds.join(',');\r",
+							"\r",
+							"// Validar que los ids se hayan extraído correctamente\r",
+							"pm.test(\"Se extrajeron neo_reference_ids\", function () {\r",
+							"    pm.expect(neoIdsString).to.not.be.empty;\r",
+							"});\r",
+							"\r",
+							"// Guardar el string en una variable de entorno\r",
+							"pm.environment.set('NEO_REFERENCE_IDS', neoIdsString);\r",
+							"\r",
+							"// Imprimir el resultado para verificación\r",
+							"console.log(\"NEO Reference IDs: \", neoIdsString);\r",
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{BASE_URL}}/neo/rest/v1/feed?start_date=2024-01-01&end_date=2024-01-08",
+					"host": [
+						"{{BASE_URL}}"
+					],
+					"path": [
+						"neo",
+						"rest",
+						"v1",
+						"feed"
+					],
+					"query": [
+						{
+							"key": "start_date",
+							"value": "2024-01-01"
+						},
+						{
+							"key": "end_date",
+							"value": "2024-01-08"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Neo - Lookup",
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							"// Obtener la variable de entorno NEO_REFERENCE_IDS\r",
+							"let neoIdsString = pm.environment.get('NEO_REFERENCE_IDS');\r",
+							"\r",
+							"if (!neoIdsString) {\r",
+							"    throw new Error(\"La variable de entorno NEO_REFERENCE_IDS no está definida.\");\r",
+							"}\r",
+							"\r",
+							"// Convertir el string en un array de IDs\r",
+							"let neoIdsArray = neoIdsString.split(',');\r",
+							"\r",
+							"// Obtener el índice actual desde otra variable de entorno (inicializa en 0 si no está definido)\r",
+							"let currentIndex = parseInt(pm.environment.get('CURRENT_NEO_INDEX') || 0, 10);\r",
+							"\r",
+							"// Verificar si hemos procesado todos los IDs\r",
+							"if (currentIndex >= neoIdsArray.length) {\r",
+							"    pm.environment.unset('CURRENT_NEO_INDEX'); // Limpiar el índice si se ha procesado todo\r",
+							"    throw new Error(\"Todos los NEO_REFERENCE_IDS han sido procesados.\");\r",
+							"}\r",
+							"\r",
+							"// Obtener el ID actual\r",
+							"let currentNeoId = neoIdsArray[currentIndex];\r",
+							"\r",
+							"// Construir la URL dinámica del servicio\r",
+							"const apiKey = pm.environment.get('API_KEY');\r",
+							"let newUrl = `https://api.nasa.gov/neo/rest/v1/neo/${currentNeoId}?api_key=${apiKey}`;\r",
+							"\r",
+							"// Establecer la nueva URL en la solicitud\r",
+							"pm.request.url = newUrl;\r",
+							"\r",
+							"// Imprimir el ID actual y la URL generada en la consola para verificación\r",
+							"console.log(\"Ejecutando para NEO_REFERENCE_ID:\", currentNeoId);\r",
+							"console.log(\"Nueva URL:\", newUrl);\r",
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				},
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"// Verificar que el código de estado es 200\r",
+							"pm.test(\"El código de estado es 200\", function () {\r",
+							"    pm.response.to.have.status(200);\r",
+							"});\r",
+							"\r",
+							"// Obtener la respuesta JSON\r",
+							"let responseJson = pm.response.json();\r",
+							"\r",
+							"// Verificar que el campo 'name' está presente en la respuesta\r",
+							"pm.test(\"El campo 'name' está presente en la respuesta\", function () {\r",
+							"    pm.expect(responseJson).to.have.property('name');\r",
+							"});\r",
+							"\r",
+							"// Verificar que el campo 'absolute_magnitude_h' es un número\r",
+							"pm.test(\"El campo 'absolute_magnitude_h' es un número\", function () {\r",
+							"    pm.expect(responseJson).to.have.property('absolute_magnitude_h').that.is.a('number');\r",
+							"});\r",
+							"\r",
+							"// Verificar que hay datos de 'close_approach_data'\r",
+							"pm.test(\"La respuesta tiene datos de 'close_approach_data'\", function () {\r",
+							"    pm.expect(responseJson).to.have.property('close_approach_data').that.is.an('array').with.length.greaterThan(0);\r",
+							"});\r",
+							"\r",
+							"// Verificar que la velocidad relativa es mayor que 0 km/s\r",
+							"pm.test(\"La velocidad relativa es mayor que 0 km/s\", function () {\r",
+							"    let velocity = responseJson.close_approach_data[0].relative_velocity.kilometers_per_second;\r",
+							"    pm.expect(parseFloat(velocity)).to.be.above(0);\r",
+							"});\r",
+							"\r",
+							"// Obtener el índice actual\r",
+							"let currentIndex = parseInt(pm.environment.get('CURRENT_NEO_INDEX') || 0, 10);\r",
+							"\r",
+							"// Obtener la variable de entorno NEO_REFERENCE_IDS\r",
+							"let neoIdsString = pm.environment.get('NEO_REFERENCE_IDS');\r",
+							"let neoIdsArray = neoIdsString ? neoIdsString.split(',') : [];\r",
+							"\r",
+							"// Incrementar el índice para la próxima solicitud\r",
+							"pm.environment.set('CURRENT_NEO_INDEX', currentIndex + 1);\r",
+							"\r",
+							"// Verificar si hemos procesado todos los IDs\r",
+							"if (currentIndex + 1 >= neoIdsArray.length) {\r",
+							"    pm.environment.unset('CURRENT_NEO_INDEX');\r",
+							"    pm.environment.unset('NEO_REFERENCE_IDS');\r",
+							"    console.log(\"Todos los NEO_REFERENCE_IDS han sido procesados.\");\r",
+							"} else {\r",
+							"    // Si no hemos terminado, simplemente continuar\r",
+							"    console.log(\"Continuando con el siguiente NEO_REFERENCE_ID...\");\r",
+							"}\r",
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{BASE_URL}}",
+					"host": [
+						"{{BASE_URL}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Neo - Browse",
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							"// Validación del parámetro 'api_key'\r",
+							"if (!pm.request.url.query.has('api_key')) {\r",
+							"    const currentEnvironment = pm.environment.name;\r",
+							"    console.log('CURRENT ENVIRONMENT: ', currentEnvironment)\r",
+							"\r",
+							"    // Comprobar si el entorno es ENV_TESTS\r",
+							"    if (currentEnvironment === 'ENV_TESTS') {\r",
+							"        const apiKey = pm.environment.get('API_KEY');\r",
+							"\r",
+							"        if (apiKey) {\r",
+							"            pm.request.url.query.add({\r",
+							"                key: 'api_key',\r",
+							"                value: apiKey\r",
+							"            });\r",
+							"        } else {\r",
+							"            throw new Error(\"API_KEY no está definida en el entorno ENV_TEST.\");\r",
+							"        }\r",
+							"    } else {\r",
+							"        // Usar una API key por defecto para otros entornos\r",
+							"        pm.request.url.query.add({\r",
+							"            key: 'api_key',\r",
+							"            value: 'uUf90MvbwKZz9HvDXQGWdpI5CCjEqethNtFauWcv'\r",
+							"        });\r",
+							"    }\r",
+							"}"
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				},
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"// Verificar que el código de estado es 200\r",
+							"pm.test(\"El código de estado es 200\", function () {\r",
+							"    pm.response.to.have.status(200);\r",
+							"});"
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{BASE_URL}}/neo/rest/v1/neo/browse",
+					"host": [
+						"{{BASE_URL}}"
+					],
+					"path": [
+						"neo",
+						"rest",
+						"v1",
+						"neo",
+						"browse"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Earth - Imagery",
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							"// Validación del parámetro 'api_key'\r",
+							"if (!pm.request.url.query.has('api_key')) {\r",
+							"    const currentEnvironment = pm.environment.name;\r",
+							"    console.log('CURRENT ENVIRONMENT: ', currentEnvironment)\r",
+							"\r",
+							"    // Comprobar si el entorno es ENV_TESTS\r",
+							"    if (currentEnvironment === 'ENV_TESTS') {\r",
+							"        const apiKey = pm.environment.get('API_KEY');\r",
+							"\r",
+							"        if (apiKey) {\r",
+							"            pm.request.url.query.add({\r",
+							"                key: 'api_key',\r",
+							"                value: apiKey\r",
+							"            });\r",
+							"        } else {\r",
+							"            throw new Error(\"API_KEY no está definida en el entorno ENV_TEST.\");\r",
+							"        }\r",
+							"    } else {\r",
+							"        // Usar una API key por defecto para otros entornos\r",
+							"        pm.request.url.query.add({\r",
+							"            key: 'api_key',\r",
+							"            value: 'uUf90MvbwKZz9HvDXQGWdpI5CCjEqethNtFauWcv'\r",
+							"        });\r",
+							"    }\r",
+							"}\r",
+							"\r",
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{BASE_URL}}/planetary/earth/imagery?lon=-75.578485&lat=6.200202&date=2018-01-01&dim=0.15",
+					"host": [
+						"{{BASE_URL}}"
+					],
+					"path": [
+						"planetary",
+						"earth",
+						"imagery"
+					],
+					"query": [
+						{
+							"key": "lon",
+							"value": "-75.578485"
+						},
+						{
+							"key": "lat",
+							"value": "6.200202"
+						},
+						{
+							"key": "date",
+							"value": "2018-01-01"
+						},
+						{
+							"key": "dim",
+							"value": "0.15"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Earth - Assets",
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							"// Validación del parámetro 'api_key'\r",
+							"if (!pm.request.url.query.has('api_key')) {\r",
+							"    const currentEnvironment = pm.environment.name;\r",
+							"    console.log('CURRENT ENVIRONMENT: ', currentEnvironment)\r",
+							"\r",
+							"    // Comprobar si el entorno es ENV_TESTS\r",
+							"    if (currentEnvironment === 'ENV_TESTS') {\r",
+							"        const apiKey = pm.environment.get('API_KEY');\r",
+							"\r",
+							"        if (apiKey) {\r",
+							"            pm.request.url.query.add({\r",
+							"                key: 'api_key',\r",
+							"                value: apiKey\r",
+							"            });\r",
+							"        } else {\r",
+							"            throw new Error(\"API_KEY no está definida en el entorno ENV_TEST.\");\r",
+							"        }\r",
+							"    } else {\r",
+							"        // Usar una API key por defecto para otros entornos\r",
+							"        pm.request.url.query.add({\r",
+							"            key: 'api_key',\r",
+							"            value: 'uUf90MvbwKZz9HvDXQGWdpI5CCjEqethNtFauWcv'\r",
+							"        });\r",
+							"    }\r",
+							"}"
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				},
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"// Obtener la respuesta del servicio en formato JSON\r",
+							"let response = pm.response.json();\r",
+							"\r",
+							"// Validar que el JSON contiene los campos esperados\r",
+							"pm.test(\"La respuesta debe tener los campos 'date', 'id', 'resource', 'service_version' y 'url'\", function () {\r",
+							"    pm.expect(response).to.have.property('date');\r",
+							"    pm.expect(response).to.have.property('id');\r",
+							"    pm.expect(response).to.have.property('resource');\r",
+							"    pm.expect(response.resource).to.have.property('dataset');\r",
+							"    pm.expect(response.resource).to.have.property('planet');\r",
+							"    pm.expect(response).to.have.property('service_version');\r",
+							"    pm.expect(response).to.have.property('url');\r",
+							"});\r",
+							"\r",
+							"// Validar que la URL es una cadena no vacía\r",
+							"pm.test(\"La URL debe ser una cadena válida y no vacía\", function () {\r",
+							"    pm.expect(response.url).to.be.a('string');\r",
+							"    pm.expect(response.url).to.not.be.empty;\r",
+							"});\r",
+							"\r",
+							"// Extraer la URL de la imagen\r",
+							"let imageUrl = response.url;\r",
+							"\r",
+							"// Guardar la URL de la imagen en una variable de entorno\r",
+							"pm.environment.set(\"imageUrl\", imageUrl);\r",
+							"\r",
+							"// Validar que la URL tiene un formato adecuado (opcional)\r",
+							"pm.test(\"La URL debe tener un formato válido\", function () {\r",
+							"    pm.expect(imageUrl).to.match(/^https:\\/\\/.+/);\r",
+							"});\r",
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{BASE_URL}}/planetary/earth/assets?lon=100.75&lat=1.5&date=2014-02-01&dim=0.15",
+					"host": [
+						"{{BASE_URL}}"
+					],
+					"path": [
+						"planetary",
+						"earth",
+						"assets"
+					],
+					"query": [
+						{
+							"key": "lon",
+							"value": "100.75"
+						},
+						{
+							"key": "lat",
+							"value": "1.5"
+						},
+						{
+							"key": "date",
+							"value": "2014-02-01"
+						},
+						{
+							"key": "dim",
+							"value": "0.15"
+						}
+					]
+				}
+			},
+			"response": []
+		}
+	]
+}
